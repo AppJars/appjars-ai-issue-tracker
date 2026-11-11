@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "appjars-docs": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@serverless-dna/mkdocs-mcp",
+        "https://docs.appjars.com/",
+        "Official AppJars documentation. Use this to search for guides, references, and integration steps for the AppJars suite of full-stack functional modules for Java enterprise applications built on Spring Boot and Vaadin, including User Manager, AI Support, Activity Log, Configuration Manager, Dynamic Menu, Email Manager, I18N Manager, Issue Tracker, Process Manager, and User Profile."
+      ]
+    }
+  }
+}
