@@ -1,6 +1,8 @@
 package com.example.issuetracker.views;
 
 import com.appjars.activitylog.flow.view.ActivityLogView;
+import com.appjars.issuetracker.business.service.UserService;
+import com.appjars.issuetracker.model.UserDto;
 import com.appjars.issuetracker.flow.component.IssueListComponent;
 import com.appjars.issuetracker.flow.view.CustomFieldListView;
 import com.appjars.issuetracker.flow.view.EnumerationListView;
@@ -63,12 +65,15 @@ public class MainLayout extends Div implements RouterLayout, AfterNavigationObse
 
     private final AccessAnnotationChecker accessChecker;
     private final AuthenticationContext authenticationContext;
+    private final UserService itUserService;
     private final Div content = new Div();
     private final List<Anchor> tabs = new ArrayList<>();
 
-    public MainLayout(AccessAnnotationChecker accessChecker, AuthenticationContext authenticationContext) {
+    public MainLayout(AccessAnnotationChecker accessChecker, AuthenticationContext authenticationContext,
+            UserService itUserService) {
         this.accessChecker = accessChecker;
         this.authenticationContext = authenticationContext;
+        this.itUserService = itUserService;
         addClassName("rm-shell");
         content.addClassName("rm-content");
         add(createTopBar(), createHeader(), content);
@@ -84,7 +89,10 @@ public class MainLayout extends Div implements RouterLayout, AfterNavigationObse
         if (canAccess(ProjectListView.class)) {
             left.add(link("Projects", ProjectListView.class));
         }
-        if (ADMIN_VIEWS.stream().anyMatch(this::canAccess)) {
+        // Issue Tracker guards its admin views with its own admin flag (AdminAccessGuard), which
+        // the access annotations checked by canAccess do not reflect.
+        boolean issueTrackerAdmin = itUserService.findLoggedInUserOptional().map(UserDto::isAdmin).orElse(false);
+        if (issueTrackerAdmin && ADMIN_VIEWS.stream().anyMatch(this::canAccess)) {
             left.add(link("Administration", AdminView.class));
         }
 

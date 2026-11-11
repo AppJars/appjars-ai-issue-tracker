@@ -6,6 +6,7 @@ import com.appjars.issuetracker.business.service.IssueStatusService;
 import com.appjars.issuetracker.business.service.MemberService;
 import com.appjars.issuetracker.business.service.ProjectService;
 import com.appjars.issuetracker.business.service.RoleService;
+import com.appjars.issuetracker.business.service.SettingsService;
 import com.appjars.issuetracker.business.service.TimeEntryService;
 import com.appjars.issuetracker.business.service.TrackerService;
 import com.appjars.issuetracker.business.service.WorkflowTransitionService;
@@ -24,11 +25,16 @@ import com.appjars.issuetracker.model.enums.IssueVisibility;
 import com.appjars.issuetracker.model.enums.RolePermission;
 import com.appjars.issuetracker.model.enums.TimeEntryVisibility;
 import com.appjars.issuetracker.model.enums.UserVisibility;
+import com.appjars.issuetracker.model.enums.settings.IssueColumn;
+import com.appjars.issuetracker.model.enums.settings.ProjectColumn;
+import com.appjars.issuetracker.model.settings.IssuesTabDto;
+import com.appjars.issuetracker.model.settings.ProjectTabDto;
 import com.appjars.usermanager.model.UserDto;
 import java.time.LocalDate;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -71,13 +77,15 @@ public class DemoDataSeeder implements ApplicationRunner {
     private final WorkflowTransitionService workflowService;
     private final IssueService issueService;
     private final TimeEntryService timeEntryService;
+    private final SettingsService settingsService;
 
     public DemoDataSeeder(com.appjars.usermanager.service.UserService umUserService,
             com.appjars.issuetracker.business.service.UserService itUserService,
             PasswordEncoder passwordEncoder, ProjectService projectService, MemberService memberService,
             RoleService roleService, TrackerService trackerService, IssueStatusService statusService,
             EnumerationService enumerationService, WorkflowTransitionService workflowService,
-            IssueService issueService, TimeEntryService timeEntryService) {
+            IssueService issueService, TimeEntryService timeEntryService, SettingsService settingsService) {
+        this.settingsService = settingsService;
         this.umUserService = umUserService;
         this.itUserService = itUserService;
         this.passwordEncoder = passwordEncoder;
@@ -95,13 +103,14 @@ public class DemoDataSeeder implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) {
         try {
+            // Issue Tracker resolves authorship and permissions from the signed-in user.
+            SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
+                    "admin", null, List.of(new SimpleGrantedAuthority("ADMIN"))));
+            listDefaults();
             if (!projectService.findAll().isEmpty()) {
                 log.info("Demo data: projects already exist, nothing to seed");
                 return;
             }
-            // Issue Tracker resolves authorship and permissions from the signed-in user.
-            SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
-                    "admin", null, List.of(new SimpleGrantedAuthority("ADMIN"))));
             seed();
             log.info("Demo data: seeding finished: {} projects, {} issues ({} open), {} time entries, {} Issue Tracker users",
                     projectService.findAll().size(), issueService.findAll().size(), issueService.countOpenIssues(),
@@ -206,7 +215,47 @@ public class DemoDataSeeder implements ApplicationRunner {
 
         if (admin == null) {
             log.warn("Demo data: Issue Tracker has no 'admin' user");
+        } else if (!admin.isAdmin()) {
+            log.warn("Demo data: Issue Tracker user 'admin' is not flagged as administrator");
         }
+    }
+
+    /**
+     * The issue and project grids show only the columns listed in Administration > Settings
+     * ("Issues list defaults" / "Projects list defaults"), and those lists start empty. Fill them
+     * with the Redmine defaults, but only while empty, so changes made in Settings are kept.
+     * Values are the lower-case names of {@code IssueColumn} / {@code ProjectColumn}.
+     */
+    private void listDefaults() {
+        step("issue list default columns", () -> {
+            IssuesTabDto tab = settingsService.findSettings(IssuesTabDto.class);
+            if (tab.getIssueListDefaultColumns() == null || tab.getIssueListDefaultColumns().isEmpty()) {
+                tab.setIssueListDefaultColumns(columns(IssueColumn.TRACKER, IssueColumn.STATUS,
+                        IssueColumn.PRIORITY, IssueColumn.SUBJECT, IssueColumn.ASSIGNED_TO, IssueColumn.UPDATED_ON));
+                if (tab.getIssueListDefaultTotals() == null) {
+                    tab.setIssueListDefaultTotals(new LinkedHashSet<>());
+                }
+                settingsService.saveTabSettings(tab);
+            }
+            return true;
+        });
+        step("project list default columns", () -> {
+            ProjectTabDto tab = settingsService.findSettings(ProjectTabDto.class);
+            if (tab.getProjectListDefaults() == null || tab.getProjectListDefaults().isEmpty()) {
+                tab.setProjectListDefaults(columns(ProjectColumn.NAME, ProjectColumn.SHORT_DESCRIPTION,
+                        ProjectColumn.IDENTIFIER));
+                settingsService.saveTabSettings(tab);
+            }
+            return true;
+        });
+    }
+
+    private static Set<String> columns(Enum<?>... columns) {
+        Set<String> names = new LinkedHashSet<>();
+        for (Enum<?> column : columns) {
+            names.add(column.name().toLowerCase());
+        }
+        return names;
     }
 
     // --- Steps -----------------------------------------------------------------------------------
