@@ -160,3 +160,7 @@ single sign-on, your own logo. Write a spec, run the prompt, test.
 The code in this repository is released under the [Apache License 2.0](LICENSE). The AppJars
 modules it depends on are commercial software with a free mode. See
 [appjars.com](https://www.appjars.com/).
+
+---
+
+*Redmine is a trademark of its respective owner. This project and AppJars are not affiliated with or endorsed by the Redmine project.*
