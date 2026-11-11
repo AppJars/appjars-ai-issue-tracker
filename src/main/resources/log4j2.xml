@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Log4j2 configuration. This project logs through Log4j2 because Activity Log, Issue Tracker needs it. -->
+<Configuration status="WARN">
+  <Appenders>
+    <Console name="Console" target="SYSTEM_OUT">
+      <PatternLayout pattern="%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} %5level %pid --- [%15.15t] %-40.40c{1.} : %msg%n%throwable"/>
+    </Console>
+    <ActivityLogAppender name="ActivityLogAppender"/>
+  </Appenders>
+  <Loggers>
+    <Root level="info" additivity="false">
+      <AppenderRef ref="Console" level="info"/>
+      <AppenderRef ref="ActivityLogAppender" level="trace"/>
+    </Root>
+  </Loggers>
+</Configuration>

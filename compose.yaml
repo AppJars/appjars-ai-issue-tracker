@@ -1,0 +1,16 @@
+# Complete application stack. Build and start it with: docker compose up -d
+services:
+  app:
+    build:
+      context: .
+    env_file:
+      - path: .env
+        required: false
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    environment:
+      VAADIN_LAUNCH_BROWSER: "false"
+      # User Manager: registration and password-reset links point at the port the stack publishes; set your public URL when deploying.
+      COM_APPJARS_USERMANAGER_EXTERNAL_URL: "http://localhost:${APP_PORT:-8080}"
+      # Issue Tracker: notification emails link to the port the stack publishes; set your public URL when deploying.
+      APPJARS_ISSUETRACKER_URL_BASE: "http://localhost:${APP_PORT:-8080}/"
