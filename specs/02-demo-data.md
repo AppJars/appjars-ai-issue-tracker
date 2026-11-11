@@ -14,9 +14,11 @@ and issues to click around.
    Manager and that Issue Tracker knows them.
 4. Two projects: **Website Redesign** (`website`) and **Mobile App** (`mobile`), with `alice`, `bob`
    and `carol` as members with sensible roles.
-5. Issues: at most **five open** issues in total (free-mode limit) spread over both projects and
-   over the Bug / Feature / Support trackers, with different priorities and assignees. Add two or
-   three **closed** issues as history if the limits allow it; skip them if they do not.
+5. Issues: at most **three open** issues in total, spread over both projects and over the
+   Bug / Feature / Support trackers, with different priorities and assignees. Free mode allows
+   five open issues; seeding all five would leave a new user unable to create an issue without
+   first closing one, so three open issues leave room for two new ones. Add a few **closed**
+   issues as history so the project still looks lived-in.
 6. Log a few time entries (well below ten per day).
 7. If any step fails because of a free-mode limit or a missing reference (e.g. a tracker that does
    not exist), log a warning and continue. Seeding must never stop the application from starting.

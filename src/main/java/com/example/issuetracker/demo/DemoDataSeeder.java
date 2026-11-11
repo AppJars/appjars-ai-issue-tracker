@@ -183,35 +183,35 @@ public class DemoDataSeeder implements ApplicationRunner {
         member(alice, mobile, developer);
         member(carol, mobile, reporter);
 
-        // --- Issues: closed history first (free mode refuses any new issue once five are open),
-        // then at most five open issues.
+        // --- Issues: four closed as history, then only three open. Free mode allows five open
+        // issues; seeding three leaves room for a new user to create two without closing any.
+        LocalDate today = LocalDate.now();
         issue(website, bug, statusClosed, normal, carol, bob,
                 "Broken link in footer", "The privacy policy link returns 404.", null);
         issue(mobile, support, statusClosed, low, carol, alice,
                 "Reset password email not received", "Turned out to be a spam filter.", null);
+        issue(mobile, feature, statusClosed, normal, bob, alice,
+                "Push notifications for order updates",
+                "Notify customers when their order changes status.", null);
+        issue(mobile, bug, statusClosed, urgent, carol, bob,
+                "App crashes on login with expired session",
+                "Steps: open the app after the session expired, tap Login.", null);
 
-        LocalDate today = LocalDate.now();
         IssueDto i1 = issue(website, bug, statusNew, high, carol, alice,
                 "Contact form does not send emails",
                 "Submitting the contact form shows a success message but no email arrives.", today.plusDays(3));
         IssueDto i2 = issue(website, feature, statusInProgress, normal, alice, bob,
                 "New landing page layout",
                 "Implement the approved landing page design.", today.plusDays(10));
-        IssueDto i3 = issue(mobile, feature, statusNew, normal, bob, alice,
-                "Push notifications for order updates",
-                "Notify customers when their order changes status.", today.plusDays(14));
-        IssueDto i4 = issue(mobile, bug, statusInProgress, urgent, carol, bob,
-                "App crashes on login with expired session",
-                "Steps: open the app after the session expired, tap Login.", today.plusDays(2));
-        issue(mobile, support, statusNew, low, carol, null,
+        IssueDto i3 = issue(mobile, support, statusNew, low, carol, alice,
                 "Question about supported Android versions",
                 "Which Android versions will the first release support?", null);
 
-        // --- Time entries (well below the ten-per-day limit) ---------------------------------
+        // --- Time entries on open issues (well below the ten-per-day limit) -------------------
         timeEntry(i1, alice, development, 1.5, "Reproduced the problem", today);
         timeEntry(i2, bob, design, 3.0, "Mock-up review", today.minusDays(1));
-        timeEntry(i3, alice, development, 2.0, "Research on push providers", today.minusDays(1));
-        timeEntry(i4, bob, development, 2.5, "Investigated crash logs", today);
+        timeEntry(i2, bob, development, 2.5, "Built the hero section", today);
+        timeEntry(i3, alice, development, 1.0, "Checked Android version statistics", today.minusDays(1));
 
         if (admin == null) {
             log.warn("Demo data: Issue Tracker has no 'admin' user");
